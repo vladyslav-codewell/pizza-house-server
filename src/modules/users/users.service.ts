@@ -55,7 +55,6 @@ export class UsersService {
     return user.save();
   }
 
-
   async delete(id: string): Promise<User> {
     const deletedUser = await this.userModel.findByIdAndDelete(id).exec();
     if (!deletedUser) throw new NotFoundException(`User with id ${id} not found`);
