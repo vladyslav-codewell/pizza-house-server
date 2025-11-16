@@ -1,98 +1,189 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+🔥 Чудово — тепер можу скласти тобі **якісний README.md** для GitHub, який виглядатиме професійно й зрозуміло.
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Я включу:
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+* Stack
+* Архітектуру
+* Auth опис
+* MongoDB структуру
+* Команди запуску
+* API документацію (коротку, без swagger)
+* Твою роль як автора
 
-## Description
+---
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 📌 **README.md (готовий текст)**
 
-## Project setup
+```md
+# 🍕 Pizza House Backend
 
-```bash
-$ npm install
+Backend для повнофункціонального онлайн-сервісу замовлення піци **Pizza House**, побудований на сучасному стеку Node.js з використанням **NestJS** та бази даних **MongoDB**.  
+Проєкт створений для реального застосування: управління товарами, категоріями, модифікаторами, замовленнями та користувачами.
+
+---
+
+## 🚀 Функціонал
+
+- 🔐 **JWT авторизація та аутентифікація**
+- 👤 Система користувачів (реєстрація, вхід, доступ до захищених маршрутів)
+- 🍕 Управління товарами (CRUD)
+- 🏷 Управління категоріями та модифікаторами
+- 🧾 Робота з замовленнями (створення, зберігання, статус)
+- 🧩 Валідація запитів `class-validator`
+- 🗄 Зберігання даних у **MongoDB (Mongoose)**
+
+---
+
+## 🧱 Технології
+
+| Технологія | Використання |
+|-----------|--------------|
+| NestJS | Backend framework |
+| MongoDB + Mongoose | База даних |
+| JWT + Passport | Аутентифікація |
+| Bcrypt | Хешування паролів |
+| TypeScript | Статична типізація |
+| Jest | Тестування |
+
+---
+
+## 📁 Архітектура проєкту
+
 ```
 
-## Compile and run the project
+src/
+┣ auth/
+┃ ┣ auth.controller.ts
+┃ ┣ auth.service.ts
+┃ ┣ auth.module.ts
+┃ ┣ auth.guard.ts
+┃ ┗ constants.ts
+┣ app.controller.ts
+┣ app.service.ts
+┣ app.module.ts
+┗ main.ts
 
-```bash
-# development
-$ npm run start
+````
 
-# watch mode
-$ npm run start:dev
+---
 
-# production mode
-$ npm run start:prod
+## 🔐 Аутентифікація
+
+Проєкт використовує **JWT Strategy** через `passport-jwt`.
+
+Механіка:
+
+1. Користувач реєструється або входить.
+2. Сервер генерує токен на основі `USER_ID`.
+3. Для захищених ендпоінтів використовується `@UseGuards(AuthGuard)`.
+
+```ts
+Authorization: Bearer <token>
+````
+
+---
+
+## 🗄️ База даних (MongoDB)
+
+* Users
+* Products
+* Categories
+* GroupModifiers
+* Orders
+
+Кожен документ має унікальну структуру з використанням схем `Mongoose`.
+
+---
+
+## 📦 Запуск проєкту
+
+### 1️⃣ Встановлення залежностей
+
+```sh
+npm install
 ```
 
-## Run tests
+### 2️⃣ Налаштування змінних середовища
 
-```bash
-# unit tests
-$ npm run test
+Створити `.env`:
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+```env
+MONGO_URI=mongodb://localhost:27017/pizza-house
+JWT_SECRET=your-secret-key
+PORT=5000
 ```
 
-## Deployment
+### 3️⃣ Запуск у режимі розробки
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+```sh
+npm run start:dev
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### 4️⃣ Продукційний запуск
 
-## Resources
+```sh
+npm run build
+npm run start:prod
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+---
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## 🧪 Тестування
 
-## Support
+```sh
+npm run test
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+---
 
-## Stay in touch
+## 📍 API (коли немає Swagger)
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+| Method | Route            | Description                     |
+| ------ | ---------------- | ------------------------------- |
+| `POST` | `/auth/register` | Реєстрація                      |
+| `POST` | `/auth/login`    | Авторизація                     |
+| `GET`  | `/products`      | Список продуктів                |
+| `POST` | `/products`      | Створення продукту (protected)  |
+| `GET`  | `/orders`        | Отримання замовлень (protected) |
 
-## License
+---
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## 🧩 TODO / Roadmap
+
+* [ ] Swagger Documentation
+* [ ] RBAC (Roles & Permissions)
+* [ ] Payments integration (Stripe/LiqPay)
+* [ ] WebSockets (Live order tracking)
+
+---
+
+## 👨‍💻 Автор
+
+```
+Vladyslav — Full-Stack JS Developer  
+React | Next.js | NestJS | MongoDB | TypeScript
+```
+
+🔗 GitHub: [https://github.com/vladyslav-codewell](https://github.com/vladyslav-codewell)
+🧩 Open Source Contributor
+
+---
+
+## 📜 License
+
+MIT — Open for learning and improvements.
+
+```
+
+---
+
+---
+
+### Хочеш — можу ще:
+
+- Згенерувати **markdown badges**
+- Додати **preview фото проєкту**
+- Зробити **emoji філософію FE/BE matching (GitHub aesthetic)**
+
+Хочеш **premium GitHub-style README декор?** 🚀
+```
