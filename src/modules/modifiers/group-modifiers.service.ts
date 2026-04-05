@@ -1,4 +1,3 @@
-
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -8,38 +7,37 @@ import { UpdateGroupModifierDto } from './dtos/update-group-modifier.dto';
 
 @Injectable()
 export class GroupModifiersService {
-  constructor(@InjectModel(GroupModifier.name) private groupModifierModel: Model<GroupModifier>) {}
+  constructor(
+    @InjectModel(GroupModifier.name)
+    private readonly groupModifierModel: Model<GroupModifier>,
+  ) {}
 
   async findAll(): Promise<GroupModifier[]> {
-    return this.groupModifierModel.find().exec();
+    return this.groupModifierModel.find().populate('modifiers').exec();
   }
 
   async findOne(id: string): Promise<GroupModifier> {
-    const groupModifier = await this.groupModifierModel.findById(id).exec();
-    if (!groupModifier) {
-      throw new NotFoundException(`GroupModifier with ID ${id} not found`);
-    }
-    return groupModifier;
+    const group = await this.groupModifierModel.findById(id).populate('modifiers').exec();
+    if (!group) throw new NotFoundException(`GroupModifier ${id} not found`);
+    return group;
   }
 
-  async create(createGroupModifierDto: CreateGroupModifierDto): Promise<GroupModifier> {
-    const newGroupModifier = new this.groupModifierModel(createGroupModifierDto);
-    return newGroupModifier.save();
+  async create(dto: CreateGroupModifierDto): Promise<GroupModifier> {
+    return new this.groupModifierModel(dto).save();
   }
 
-  async update(id: string, updateGroupModifierDto: UpdateGroupModifierDto): Promise<GroupModifier> {
-    const updatedGroupModifier = await this.groupModifierModel.findByIdAndUpdate(id, updateGroupModifierDto, { new: true }).exec();
-    if (!updatedGroupModifier) {
-      throw new NotFoundException(`GroupModifier with ID ${id} not found`);
-    }
-    return updatedGroupModifier;
+  async update(id: string, dto: UpdateGroupModifierDto): Promise<GroupModifier> {
+    const updated = await this.groupModifierModel
+      .findByIdAndUpdate(id, dto, { new: true })
+      .populate('modifiers')
+      .exec();
+    if (!updated) throw new NotFoundException(`GroupModifier ${id} not found`);
+    return updated;
   }
 
-  async remove(id: string): Promise<GroupModifier> {
-    const deletedGroupModifier = await this.groupModifierModel.findByIdAndDelete(id).exec();
-    if (!deletedGroupModifier) {
-      throw new NotFoundException(`GroupModifier with ID ${id} not found`);
-    }
-    return deletedGroupModifier;
+  async remove(id: string): Promise<{ deleted: true }> {
+    const result = await this.groupModifierModel.findByIdAndDelete(id).exec();
+    if (!result) throw new NotFoundException(`GroupModifier ${id} not found`);
+    return { deleted: true };
   }
 }

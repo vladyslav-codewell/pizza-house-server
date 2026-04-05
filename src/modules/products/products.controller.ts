@@ -1,70 +1,100 @@
-// src/products/products.controller.ts
-
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  Delete,
-  Patch,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dtos/create-product.dto';
 import { UpdateProductDto } from './dtos/update-product.dto';
 import { CreateGroupedProductDto } from './dtos/create-grouped-product.dto';
 import { UpdateGroupedProductDto } from './dtos/update-grouped-product.dto';
+import { Public } from '../auth/auth.guard';
 
+@ApiTags('Products')
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) { }
+  constructor(private readonly productsService: ProductsService) {}
 
-  @Post()
-  create(@Body() createProductDto: CreateProductDto) {
-    console.log(createProductDto, 'dtos')
-    return this.productsService.create(createProductDto);
+  // ── Grouped Products ─────────────────────────────────────────────────────────
+
+  @Public()
+  @Get('grouped')
+  @ApiOperation({ summary: 'Get all grouped products (full catalog with variants)' })
+  @ApiResponse({ status: 200, description: 'Array of grouped products with populated variants' })
+  getAllGrouped() {
+    return this.productsService.getAllGroupedProducts();
   }
 
+  @Public()
+  @Get('grouped/:id')
+  @ApiOperation({ summary: 'Get grouped product by ID' })
+  @ApiParam({ name: 'id', description: 'MongoDB ObjectId of the grouped product' })
+  @ApiResponse({ status: 200, description: 'Grouped product with all variants populated' })
+  @ApiResponse({ status: 404, description: 'Grouped product not found' })
+  getGroupedById(@Param('id') id: string) {
+    return this.productsService.getGroupedProductById(id);
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @Post('grouped')
+  @ApiOperation({ summary: 'Create grouped product (pizza group with size variants)' })
+  @ApiResponse({ status: 201, description: 'Grouped product created' })
+  createGrouped(@Body() dto: CreateGroupedProductDto) {
+    return this.productsService.createGroupedProduct(dto);
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @Patch('grouped/:id')
+  @ApiOperation({ summary: 'Update grouped product' })
+  @ApiParam({ name: 'id', description: 'MongoDB ObjectId' })
+  updateGrouped(@Param('id') id: string, @Body() dto: UpdateGroupedProductDto) {
+    return this.productsService.updateGroupedProduct(id, dto);
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @Delete('grouped/:id')
+  @ApiOperation({ summary: 'Delete grouped product' })
+  @ApiParam({ name: 'id', description: 'MongoDB ObjectId' })
+  removeGrouped(@Param('id') id: string) {
+    return this.productsService.removeGroupedProduct(id);
+  }
+
+  // ── Single Product Variants ───────────────────────────────────────────────────
+
+  @Public()
   @Get()
+  @ApiOperation({ summary: 'Get all product variants' })
   findAll() {
     return this.productsService.findAll();
   }
 
-  @Get('grouped')
-  async getAllGroupedProducts() {
-    return this.productsService.getAllGroupedProducts();
-  }
-
+  @Public()
   @Get(':id')
+  @ApiOperation({ summary: 'Get product variant by ID (with modifiers populated)' })
+  @ApiParam({ name: 'id', description: 'MongoDB ObjectId' })
+  @ApiResponse({ status: 404, description: 'Product not found' })
   findOne(@Param('id') id: string) {
     return this.productsService.findOne(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
-    return this.productsService.update(id, updateProductDto);
+  @ApiBearerAuth('JWT-auth')
+  @Post()
+  @ApiOperation({ summary: 'Create a product variant (e.g., Pizza 30cm)' })
+  @ApiResponse({ status: 201, description: 'Product created' })
+  create(@Body() dto: CreateProductDto) {
+    return this.productsService.create(dto);
   }
 
+  @ApiBearerAuth('JWT-auth')
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update product variant' })
+  @ApiParam({ name: 'id', description: 'MongoDB ObjectId' })
+  update(@Param('id') id: string, @Body() dto: UpdateProductDto) {
+    return this.productsService.update(id, dto);
+  }
+
+  @ApiBearerAuth('JWT-auth')
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete product variant' })
+  @ApiParam({ name: 'id', description: 'MongoDB ObjectId' })
   remove(@Param('id') id: string) {
     return this.productsService.remove(id);
-  }
-
-  @Get('grouped/:id')
-  async getGroupedProductById(@Param('id') id: string) {
-    return this.productsService.getGroupedProductById(id);
-  }
-
-  @Post('grouped')
-  async createGroupedProduct(@Body() createGroupedProductDto: CreateGroupedProductDto) {
-    return this.productsService.createGroupedProduct(createGroupedProductDto);
-  }
-
-  @Patch('grouped/:id')
-  async updateGroupedProduct(
-    @Param('id') id: string, 
-    @Body() updateGroupedProductDto: UpdateGroupedProductDto, // Використовуємо DTO для оновлення
-  ) {
-    return this.productsService.updateGroupedProduct(id, updateGroupedProductDto);
   }
 }

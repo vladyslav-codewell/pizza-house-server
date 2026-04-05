@@ -16,5 +16,6 @@ import { GroupModifier, GroupModifierSchema } from './schemas/group-modifier.sch
   ],
   controllers: [ModifiersController, GroupModifiersController],
   providers: [ModifiersService, GroupModifiersService],
+  exports: [ModifiersService, GroupModifiersService],
 })
 export class ModifiersModule {}

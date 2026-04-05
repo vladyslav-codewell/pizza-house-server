@@ -1,36 +1,56 @@
-import { Controller, Get, Post, Put, Delete, Body, Param } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam,
+} from '@nestjs/swagger';
 import { UsersService } from './users.service';
-import { User } from './schemas/user.schema';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { Public } from '../auth/auth.guard';
 
+@ApiTags('Users')
+@ApiBearerAuth('JWT-auth')
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(private readonly usersService: UsersService) {}
+
+  @Public()
+  @Post()
+  @ApiOperation({ summary: 'Register a new user' })
+  @ApiResponse({ status: 201, description: 'User created' })
+  @ApiResponse({ status: 409, description: 'Email already registered' })
+  create(@Body() dto: CreateUserDto) {
+    return this.usersService.create(dto);
+  }
 
   @Get()
-  async getUsers(): Promise<User[]> {
+  @ApiOperation({ summary: 'List all users (admin)' })
+  @ApiResponse({ status: 200, description: 'Array of users (password excluded)' })
+  findAll() {
     return this.usersService.findAll();
   }
 
   @Get(':id')
-  async getUserById(@Param('id') id: string): Promise<User> {
+  @ApiOperation({ summary: 'Get user by ID' })
+  @ApiParam({ name: 'id', description: 'MongoDB ObjectId' })
+  @ApiResponse({ status: 200, description: 'User found' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  findOne(@Param('id') id: string) {
     return this.usersService.findById(id);
   }
 
-  @Public()
-  @Post()
-  async createUser(@Body() data: Partial<User>): Promise<User> {
-    return this.usersService.create(data);
-  }
-
-  @Put(':id')
-  updateUser(@Param('id') id: string, @Body() data: Partial<User>) {
-    console.log('Received body:', data);
-    return this.usersService.update(id, data);
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update user email or password' })
+  @ApiParam({ name: 'id', description: 'MongoDB ObjectId' })
+  @ApiResponse({ status: 200, description: 'User updated' })
+  update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
+    return this.usersService.update(id, dto);
   }
 
   @Delete(':id')
-  async deleteUser(@Param('id') id: string): Promise<User> {
+  @ApiOperation({ summary: 'Delete user' })
+  @ApiParam({ name: 'id', description: 'MongoDB ObjectId' })
+  @ApiResponse({ status: 200, description: 'User deleted' })
+  remove(@Param('id') id: string) {
     return this.usersService.delete(id);
   }
 }

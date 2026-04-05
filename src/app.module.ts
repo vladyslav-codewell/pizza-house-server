@@ -1,30 +1,29 @@
 import { Module } from '@nestjs/common';
-import { UsersModule } from './modules/users/users.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
-import { APP_GUARD } from '@nestjs/core';
-import { AuthGuard } from './modules/auth/auth.guard';
 import { ProductsModule } from './modules/products/products.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { ModifiersModule } from './modules/modifiers/modifiers.module';
+import { OrdersModule } from './modules/orders/orders.module';
 
 @Module({
   imports: [
-    MongooseModule.forRoot('mongodb+srv://jeremyfan533:KfE4ZzVc4NzgH@shop-cluster.a03ny.mongodb.net/?retryWrites=true&w=majority&appName=shop-cluster'),
+    ConfigModule.forRoot({ isGlobal: true }),
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        uri: config.getOrThrow<string>('MONGODB_URI'),
+      }),
+    }),
     UsersModule,
     AuthModule,
     ProductsModule,
     CategoriesModule,
     ModifiersModule,
+    OrdersModule,
   ],
-  controllers: [AppController],
-  providers: [
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: AuthGuard,
-    // },
-    AppService]
 })
-export class AppModule { }
+export class AppModule {}

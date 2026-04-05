@@ -1,38 +1,33 @@
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Request } from '@nestjs/common';
 import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Post,
-  Request,
-  UseGuards,
-} from '@nestjs/common';
-import { AuthGuard, Public } from './auth.guard';
+  ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody,
+} from '@nestjs/swagger';
+import { Public } from './auth.guard';
 import { AuthService } from './auth.service';
-import { IsEmail, IsString, MinLength } from 'class-validator';
+import { SignInDto } from './dto/sign-in.dto';
 
-export class SignInDto {
-  @IsEmail()
-  email: string;
-
-  @IsString()
-  @MinLength(6)
-  password: string;
-}
-
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private readonly authService: AuthService) {}
 
   @Public()
   @Post('login')
-  async signIn(@Body() signInDto: SignInDto) {
-    return this.authService.signIn(signInDto.email, signInDto.password);
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Login and receive JWT token' })
+  @ApiBody({ type: SignInDto })
+  @ApiResponse({ status: 200, description: 'Returns access_token', schema: { example: { access_token: 'eyJhbGci...' } } })
+  @ApiResponse({ status: 401, description: 'Invalid credentials' })
+  signIn(@Body() dto: SignInDto) {
+    return this.authService.signIn(dto.email, dto.password);
   }
 
+  @ApiBearerAuth('JWT-auth')
   @Get('profile')
-  getProfile(@Request() req) {
+  @ApiOperation({ summary: 'Get current authenticated user from token' })
+  @ApiResponse({ status: 200, description: 'JWT payload of current user' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  getProfile(@Request() req: { user: unknown }) {
     return req.user;
   }
 }

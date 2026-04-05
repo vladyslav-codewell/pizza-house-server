@@ -1,63 +1,55 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { User, UserDocument } from './schemas/user.schema';
 import * as bcrypt from 'bcrypt';
+import { User, UserDocument } from './schemas/user.schema';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) { }
+  constructor(@InjectModel(User.name) private readonly userModel: Model<UserDocument>) {}
 
-  async findOneByEmail(email: string): Promise<User | null> {
-    return this.userModel.findOne({ email }).exec();
+  async findOneByEmail(email: string): Promise<UserDocument | null> {
+    return this.userModel.findOne({ email: email.toLowerCase() }).exec();
   }
 
-  async findById(id: string): Promise<User> {
-    const user = await this.userModel.findById(id).exec();
-    if (!user) throw new NotFoundException(`User with id ${id} not found`);
+  async findAll(): Promise<UserDocument[]> {
+    return this.userModel.find().select('-password').exec();
+  }
+
+  async findById(id: string): Promise<UserDocument> {
+    const user = await this.userModel.findById(id).select('-password').exec();
+    if (!user) throw new NotFoundException(`User ${id} not found`);
     return user;
   }
 
-  async findAll(): Promise<User[]> {
-    return this.userModel.find().exec();
-  }
+  async create(dto: CreateUserDto): Promise<UserDocument> {
+    const exists = await this.findOneByEmail(dto.email);
+    if (exists) throw new ConflictException('Email already registered');
 
-  async create(data: Partial<User>): Promise<User> {
-    if (!data.password) throw new Error('Password is required');
-
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(data.password, salt);
-    data.password = hashedPassword;
-
-    const user = new this.userModel(data);
+    const hashed = await bcrypt.hash(dto.password, 10);
+    const user = new this.userModel({ email: dto.email.toLowerCase(), password: hashed });
     return user.save();
   }
 
-  async update(id: string, data: Partial<User>): Promise<User> {
-    if (!data) {
-      throw new Error('No data provided for update');
+  async update(id: string, dto: UpdateUserDto): Promise<UserDocument> {
+    if (dto.password) {
+      dto.password = await bcrypt.hash(dto.password, 10);
     }
 
-    const user = await this.userModel.findById(id).exec();
-    if (!user) {
-      throw new NotFoundException(`User with id ${id} not found`);
-    }
+    const user = await this.userModel
+      .findByIdAndUpdate(id, dto, { new: true })
+      .select('-password')
+      .exec();
 
-    if (data.email) {
-      user.email = data.email;
-    }
-
-    if (data.password) {
-      const salt = await bcrypt.genSalt(10);
-      user.password = await bcrypt.hash(data.password, salt);
-    }
-
-    return user.save();
+    if (!user) throw new NotFoundException(`User ${id} not found`);
+    return user;
   }
 
-  async delete(id: string): Promise<User> {
-    const deletedUser = await this.userModel.findByIdAndDelete(id).exec();
-    if (!deletedUser) throw new NotFoundException(`User with id ${id} not found`);
-    return deletedUser;
+  async delete(id: string): Promise<{ deleted: true }> {
+    const result = await this.userModel.findByIdAndDelete(id).exec();
+    if (!result) throw new NotFoundException(`User ${id} not found`);
+    return { deleted: true };
   }
 }

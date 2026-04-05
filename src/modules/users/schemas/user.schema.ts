@@ -1,11 +1,15 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Document } from 'mongoose';
+import { ApiProperty } from '@nestjs/swagger';
+import { Exclude } from 'class-transformer';
 
 @Schema({ timestamps: true })
 export class User extends Document {
-  @Prop({ required: true })
+  @ApiProperty({ example: 'john@pizza.com', description: 'Unique user email' })
+  @Prop({ required: true, unique: true, lowercase: true, trim: true })
   email: string;
 
+  @Exclude() // never expose in API responses
   @Prop({ required: true })
   password: string;
 }

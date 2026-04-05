@@ -8,96 +8,105 @@ import { CreateGroupedProductDto } from './dtos/create-grouped-product.dto';
 import { GroupedProduct, GroupedProductDocument } from './schemas/grouped-product.schema';
 import { UpdateGroupedProductDto } from './dtos/update-grouped-product.dto';
 
+const MODIFIER_POPULATE = {
+  path: 'group_modifiers',
+  populate: { path: 'modifiers' },
+};
+
 @Injectable()
 export class ProductsService {
   constructor(
-    @InjectModel(Product.name) private readonly productModel: Model<ProductDocument>,
+    @InjectModel(Product.name)
+    private readonly productModel: Model<ProductDocument>,
 
-    @InjectModel(GroupedProduct.name) private readonly groupedProductModel: Model<GroupedProductDocument>,
-  ) { }
+    @InjectModel(GroupedProduct.name)
+    private readonly groupedProductModel: Model<GroupedProductDocument>,
+  ) {}
+
+  // ── Single Products ──────────────────────────────────────────────────────────
 
   async findAll(): Promise<Product[]> {
     return this.productModel
       .find()
       .populate('category_id')
-      .populate({
-        path: 'group_modifiers',
-        populate: {
-          path: 'modifiers'
-        }
-      })
+      .populate(MODIFIER_POPULATE)
       .exec();
   }
 
   async findOne(id: string): Promise<Product> {
-    const product = await this.productModel.findById(id).populate({
-        path: 'group_modifiers',
-        populate: {
-          path: 'modifiers'
-        }
-      })
+    const product = await this.productModel
+      .findById(id)
+      .populate('category_id')
+      .populate(MODIFIER_POPULATE)
+      .populate('well_together_products')
       .exec();
-    if (!product) {
-      throw new NotFoundException(`Product with ID ${id} not found`);
-    }
+
+    if (!product) throw new NotFoundException(`Product ${id} not found`);
     return product;
   }
 
-  async create(createProductDto: CreateProductDto): Promise<Product> {
-    const newProduct = new this.productModel(createProductDto);
-    return newProduct.save();
+  async create(dto: CreateProductDto): Promise<Product> {
+    return new this.productModel(dto).save();
   }
 
-  async update(id: string, updateProductDto: UpdateProductDto): Promise<Product> {
-    const updatedProduct = await this.productModel.findByIdAndUpdate(id, updateProductDto, { new: true }).exec();
-    if (!updatedProduct) {
-      throw new NotFoundException(`Product with ID ${id} not found`);
-    }
-    return updatedProduct;
+  async update(id: string, dto: UpdateProductDto): Promise<Product> {
+    const updated = await this.productModel
+      .findByIdAndUpdate(id, dto, { new: true })
+      .exec();
+    if (!updated) throw new NotFoundException(`Product ${id} not found`);
+    return updated;
   }
 
-  async remove(id: string): Promise<Product> {
-    const deletedProduct = await this.productModel.findByIdAndDelete(id).exec();
-    if (!deletedProduct) {
-      throw new NotFoundException(`Product with ID ${id} not found`);
-    }
-    return deletedProduct;
+  async remove(id: string): Promise<{ deleted: true }> {
+    const result = await this.productModel.findByIdAndDelete(id).exec();
+    if (!result) throw new NotFoundException(`Product ${id} not found`);
+    return { deleted: true };
   }
 
-  async getAllGroupedProducts() {
-    return await this.groupedProductModel.find().populate({
-      path: 'products', 
-      populate: [ 
-        {
-          path: 'category_id', 
-        },
-        {
-          path: 'group_modifiers',
-          populate: {
-            path: 'modifiers',
-          }
-        }
-      ]
-    })
+  // ── Grouped Products ─────────────────────────────────────────────────────────
+
+  async getAllGroupedProducts(): Promise<GroupedProduct[]> {
+    return this.groupedProductModel
+      .find()
+      .populate({
+        path: 'products',
+        populate: [
+          { path: 'category_id' },
+          MODIFIER_POPULATE,
+        ],
+      })
+      .sort({ order: 1 })
+      .exec();
   }
 
-  async getGroupedProductById(id: string) {
-    return await this.groupedProductModel.findOne({ where: { id } })
+  async getGroupedProductById(id: string): Promise<GroupedProduct> {
+    const group = await this.groupedProductModel
+      .findById(id)
+      .populate({
+        path: 'products',
+        populate: [{ path: 'category_id' }, MODIFIER_POPULATE],
+      })
+      .exec();
+
+    if (!group) throw new NotFoundException(`Grouped product ${id} not found`);
+    return group;
   }
 
   async createGroupedProduct(dto: CreateGroupedProductDto): Promise<GroupedProduct> {
-    const createdGroup = new this.groupedProductModel(dto);
-    return createdGroup.save();
+    return new this.groupedProductModel(dto).save();
   }
 
-  async updateGroupedProduct(id: string, updateGroupedProductDto: UpdateGroupedProductDto): Promise<GroupedProduct> {
-    const updatedGroup = await this.groupedProductModel
-      .findByIdAndUpdate(id, updateGroupedProductDto, { new: true }) // { new: true } повертає оновлений документ
+  async updateGroupedProduct(id: string, dto: UpdateGroupedProductDto): Promise<GroupedProduct> {
+    const updated = await this.groupedProductModel
+      .findByIdAndUpdate(id, dto, { new: true })
       .exec();
+    if (!updated) throw new NotFoundException(`Grouped product ${id} not found`);
+    return updated;
+  }
 
-    if (!updatedGroup) {
-      throw new NotFoundException(`Grouped Product with ID ${id} not found`);
-    }
-    return updatedGroup;
+  async removeGroupedProduct(id: string): Promise<{ deleted: true }> {
+    const result = await this.groupedProductModel.findByIdAndDelete(id).exec();
+    if (!result) throw new NotFoundException(`Grouped product ${id} not found`);
+    return { deleted: true };
   }
 }
