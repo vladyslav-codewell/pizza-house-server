@@ -36,8 +36,12 @@
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+<<<<<<< HEAD
     "swagger-ui-express": "^5.0.1",
     "@nestjs/config": "^4.0.0"
+=======
+    "swagger-ui-express": "^5.0.1"
+>>>>>>> f7754b0be294babc5cd73293a96785f825d12836
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",

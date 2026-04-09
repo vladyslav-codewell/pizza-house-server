@@ -21,6 +21,7 @@ export class CreateCategoryDto {
   @IsString()
   @IsOptional()
   readonly image?: string;
+<<<<<<< HEAD
 
   @ApiPropertyOptional({ type: [String] })
   @IsArray()
@@ -33,4 +34,6 @@ export class CreateCategoryDto {
   @IsMongoId({ each: true })
   @IsOptional()
   readonly category_products?: string[];
+=======
+>>>>>>> f7754b0be294babc5cd73293a96785f825d12836
 }

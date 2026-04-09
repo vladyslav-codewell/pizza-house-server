@@ -1,11 +1,16 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+<<<<<<< HEAD
 import { ValidationPipe, VersioningType } from '@nestjs/common';
+=======
+import { ValidationPipe } from '@nestjs/common';
+>>>>>>> f7754b0be294babc5cd73293a96785f825d12836
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+<<<<<<< HEAD
   // Global API prefix
   app.setGlobalPrefix('api');
 
@@ -16,6 +21,28 @@ async function bootstrap() {
   });
 
   // Global validation pipe — strips unknown fields, auto-transforms types
+=======
+  // --- Swagger Configuration ---
+  const config = new DocumentBuilder()
+    .setTitle('Pizza House API')
+    .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter JWT token',
+        in: 'header',
+      },
+      'JWT-auth', // This name must match the one in @ApiBearerAuth()
+    )
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('docs', app, document);
+
+  // --- Global Validation ---
+>>>>>>> f7754b0be294babc5cd73293a96785f825d12836
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
@@ -24,6 +51,7 @@ async function bootstrap() {
     }),
   );
 
+<<<<<<< HEAD
   // Swagger
   const config = new DocumentBuilder()
     .setTitle('Pizza House API')
@@ -64,5 +92,11 @@ async function bootstrap() {
   await app.listen(port);
   console.log(`🚀 Server: http://localhost:${port}/api`);
   console.log(`📖 Swagger: http://localhost:${port}/docs`);
+=======
+  const port = process.env.PORT ?? 5000;
+  await app.listen(port);
+  console.log(`🚀 Server running on: http://localhost:${port}`);
+  console.log(`📖 Documentation: http://localhost:${port}/docs`);
+>>>>>>> f7754b0be294babc5cd73293a96785f825d12836
 }
 bootstrap();
